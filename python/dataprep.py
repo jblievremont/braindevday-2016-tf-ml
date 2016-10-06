@@ -3,6 +3,11 @@
 #
 # SonarSource BrainDevDay 2016 - Prepare mailing list data for TF
 #
+# See https://docs.python.org/2/library/mailbox.html for doc on
+# mailbox module (used to parse mbox file)
+# See https://docs.python.org/2/library/email.message.html for doc
+# on email.message module (used to handle email message contents)
+#
 
 import mailbox
 import sys
