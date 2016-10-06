@@ -8,6 +8,9 @@
 # See https://docs.python.org/2/library/email.message.html for doc
 # on email.message module (used to handle email message contents)
 #
+# See https://www.jwz.org/doc/threading.html on algorithm that can
+# be used to build email discussion threads
+#
 
 import mailbox
 import sys
@@ -25,3 +28,9 @@ if __name__ == '__main__':
     sonarSourceMailingList = mailbox.mbox(mboxFilePath)
 
     print "Got %d messages" % len(sonarSourceMailingList)
+
+    rootMessages = [message for message
+        in sonarSourceMailingList.values()
+        if not message['References']]
+
+    print "Got %s root messages" % len(rootMessages)
