@@ -14,6 +14,17 @@
 
 import mailbox
 import sys
+import pprint
+
+from collections import Counter
+
+def sanitize_address(email):
+    if '<' in email:
+        openingChevron = email.find('<')
+        closingChevron = email.find('>')
+        return email[openingChevron + 1:closingChevron]
+    else:
+        return email
 
 if __name__ == '__main__':
 
@@ -31,6 +42,24 @@ if __name__ == '__main__':
 
     rootMessages = [message for message
         in sonarSourceMailingList.values()
-        if not message['References']]
+        if not message['References']
+        and not '@sonarsource.com' in message['From']]
 
-    print "Got %s root messages" % len(rootMessages)
+    print "Got %d root messages not from SonarSource" % len(rootMessages)
+
+    rootMessageIds = [message['Message-ID'] for message
+        in rootMessages]
+
+    firstResponses = [message for message
+        in sonarSourceMailingList.values()
+        if message['References'] in rootMessageIds]
+
+    print "Got %d first responses" % len(firstResponses)
+
+    firstSonarSourceResponders = Counter(map(sanitize_address, [
+        message['From'] for message
+        in firstResponses
+        if '@sonarsource.com' in message['From']]))
+
+    print "First responders from SS: "
+    pprint.pprint(firstSonarSourceResponders)
