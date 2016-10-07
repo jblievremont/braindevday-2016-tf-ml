@@ -19,6 +19,19 @@ import csv
 
 from collections import Counter
 
+mailingListAddresses = [
+    'user@sonar.codehaus.org',
+    'sonarqube@googlegroups.com',
+    'sonarlint@googlegroups.com'
+]
+
+def isToMailingList(addresses):
+    for address in addresses:
+        for mlAddress in mailingListAddresses:
+            if mlAddress in address:
+                return True
+    return False
+
 def sanitize_address(email):
     if '<' in email:
         openingChevron = email.find('<')
@@ -52,7 +65,8 @@ if __name__ == '__main__':
 
     firstResponses = [message for message
         in sonarSourceMailingList.values()
-        if message['References'] in rootMessageIds]
+        if message['References'] in rootMessageIds
+        and isToMailingList(message.get_all('To', []))]
 
     # print "Got %d first responses" % len(firstResponses)
 
@@ -64,7 +78,7 @@ if __name__ == '__main__':
         for message in firstResponses
         if '@sonarsource.com' in message['From']]
 
-    with open('respondersWithRootSubject.csv', 'wb') as csvfile:
+    with open(mboxFilePath + '.csv', 'wb') as csvfile:
         spamwriter = csv.writer(csvfile, delimiter=',',
                             quotechar="'", quoting=csv.QUOTE_MINIMAL)
         for address, subject in respondersWithRootSubject:
