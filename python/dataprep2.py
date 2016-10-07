@@ -16,6 +16,9 @@ from nltk.corpus import stopwords
 BLOCK_SIZE = 25
 TRAIN_TEST_RATIO = 7
 
+TEAMS_BY_ADDRESS = {'david.racodon@sonarsource.com': 0, 'samuel.mercier@sonarsource.com': 7, 'stephane.gamard@sonarsource.com': 2, 'pierre-yves.nicolas@sonarsource.com': 3, 'elena.vilchik@sonarsource.com': 3, 'duarte.meneses@sonarsource.com': 4, 'linda.martin@sonarsource.com': 3, 'eric.duquesnoy@sonarsource.com': 2, 'thomas.verin@sonarsource.com': 0, 'freddy.mallet@sonarsource.com': 5, 'julien.lancelot@sonarsource.com': 2, 'olivier.gaudin@sonarsource.com': 5, 'dinesh.bolkensteyn@sonarsource.com': 6, 'simon.brandhof@sonarsource.com': 2, 'eric.hartmann@sonarsource.com': 0, 'yves.duboispelerin@sonarsource.com': 3, 'nicolas.bontoux@sonarsource.com': 0, 'ann.campbell@sonarsource.com': 5, 'fabrice.bellingard@sonarsource.com': 5, 'eric.hirlemann@sonarsource.com': 0, 'jeandenis.coffre@sonarsource.com': 0, 'nicolas.peru@sonarsource.com': 7, 'jean-baptiste.lievremont@sonarsource.com': 2, 'massimo.paladin@sonarsource.com': 7, 'olivier.korach@sonarsource.com': 0, 'henri.gomez@sonarsource.com': 0, 'teryk.bellahsene@sonarsource.com': 2, 'sebastien.lesaint@sonarsource.com': 2, 'alexandre.gigleux@sonarsource.com': 0, 'julien.henry@sonarsource.com': 4, 'jose.gomez@sonarsource.com': 0, 'tamas.vajk@sonarsource.com': 6, 'stas.vilchik@sonarsource.com': 2, 'michael.gumowski@sonarsource.com': 7}
+NB_TEAMS = 8
+
 if __name__ == '__main__':
 
     csvFilePath = None
@@ -51,10 +54,10 @@ if __name__ == '__main__':
     uniqueTokenDict = dict([(token, index) for (index, token) in enumerate(sortedUniqueTokens)])
 
     subjectArray = numpy.zeros((len(subjects), BLOCK_SIZE), dtype=numpy.int16)
-    addressArray = numpy.zeros(len(addresses), dtype=numpy.int8)
+    addressArray = numpy.zeros(len(subjects), dtype=numpy.int8)
 
     for rowIndex in range(len(subjects)):
-        adrIndex = sortedUniqueAddresses.index(addresses[rowIndex])
+        adrIndex = TEAMS_BY_ADDRESS[addresses[rowIndex]]
         addressArray[rowIndex] = adrIndex
         subjectWordIndices = [
             uniqueTokenDict[token.lower()]
