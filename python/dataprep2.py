@@ -10,7 +10,8 @@ import sys
 import nltk
 import pprint
 import struct
-from collections import Counter
+
+from nltk.corpus import stopwords
 
 BLOCK_SIZE = 25
 TRAIN_TEST_RATIO = 7
@@ -20,7 +21,7 @@ if __name__ == '__main__':
     csvFilePath = None
 
     if len(sys.argv) < 2:
-        print 'First arg must be a mbox file path'
+        print 'First arg must be a CSV file path'
         sys.exit(-1)
     else:
         csvFilePath = sys.argv[1]
@@ -39,7 +40,13 @@ if __name__ == '__main__':
     tokenized_subjects = [
         nltk.word_tokenize(subject) for subject in subjects
     ]
-    flattened_subjects = [word.lower() for subject in tokenized_subjects for word in subject]
+    stopwords_en = stopwords.words('english')
+    flattened_subjects = [
+        word.lower()
+        for subject in tokenized_subjects
+        for word in subject
+        if word not in stopwords_en
+    ]
     sortedUniqueTokens = sorted(list(set(flattened_subjects)))
     uniqueTokenDict = dict([(token, index) for (index, token) in enumerate(sortedUniqueTokens)])
 
@@ -53,9 +60,9 @@ if __name__ == '__main__':
             uniqueTokenDict[token.lower()]
             for subject in tokenized_subjects
             for token in subject
+            if uniqueTokenDict.has_key(token)
         ][0:BLOCK_SIZE]
         subjectArray[rowIndex] = subjectWordIndices + [0] * (BLOCK_SIZE - len(subjectWordIndices))
-    print subjectArray
 
     #print sortedUniqueAddresses
     #print subjectArray
