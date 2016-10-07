@@ -7,8 +7,12 @@
 import csv
 import numpy
 import sys
+import nltk
+import pprint
+import struct
+from collections import Counter
 
-BLOCK_SIZE = 256
+BLOCK_SIZE = 25
 TRAIN_TEST_RATIO = 7
 
 if __name__ == '__main__':
@@ -32,14 +36,26 @@ if __name__ == '__main__':
 
     sortedUniqueAddresses = sorted(list(set(addresses)))
 
-    subjectArray = numpy.zeros((len(subjects), BLOCK_SIZE), dtype=numpy.int8)
+    tokenized_subjects = [
+        nltk.word_tokenize(subject) for subject in subjects
+    ]
+    flattened_subjects = [word.lower() for subject in tokenized_subjects for word in subject]
+    sortedUniqueTokens = sorted(list(set(flattened_subjects)))
+    uniqueTokenDict = dict([(token, index) for (index, token) in enumerate(sortedUniqueTokens)])
+
+    subjectArray = numpy.zeros((len(subjects), BLOCK_SIZE), dtype=numpy.int16)
     addressArray = numpy.zeros(len(addresses), dtype=numpy.int8)
 
     for rowIndex in range(len(subjects)):
         adrIndex = sortedUniqueAddresses.index(addresses[rowIndex])
         addressArray[rowIndex] = adrIndex
-        subjectBytes = [ord(subjectChar) for subjectChar in subjects[rowIndex]]
-        subjectArray[rowIndex] = subjectBytes + [0] * (BLOCK_SIZE - len(subjectBytes))
+        subjectWordIndices = [
+            uniqueTokenDict[token.lower()]
+            for subject in tokenized_subjects
+            for token in subject
+        ][0:BLOCK_SIZE]
+        subjectArray[rowIndex] = subjectWordIndices + [0] * (BLOCK_SIZE - len(subjectWordIndices))
+    print subjectArray
 
     #print sortedUniqueAddresses
     #print subjectArray
@@ -49,18 +65,24 @@ if __name__ == '__main__':
         for address in sortedUniqueAddresses:
             addressesFile.write(address + '\n')
 
+    with open('tokens.txt', 'wb') as tokensFile:
+        for token in sortedUniqueTokens:
+            tokensFile.write(token + '\n')
+
     with open('subjectsTrain.bin', 'wb') as subjectsFile:
         index = 0
         for subject in subjectArray:
             if index % TRAIN_TEST_RATIO:
-                subjectsFile.write(bytearray(subject))
+                for tokenIndex in subject:
+                    subjectsFile.write(tokenIndex)
             index += 1
 
     with open('subjectsTest.bin', 'wb') as subjectsFile:
         index = 0
         for subject in subjectArray:
             if not index % TRAIN_TEST_RATIO:
-                subjectsFile.write(bytearray(subject))
+                for tokenIndex in subject:
+                    subjectsFile.write(tokenIndex)
             index += 1
 
     with open('labelsTrain.bin', 'wb') as labelsFile:
