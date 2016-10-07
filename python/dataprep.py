@@ -15,6 +15,7 @@
 import mailbox
 import sys
 import pprint
+import csv
 
 from collections import Counter
 
@@ -38,28 +39,33 @@ if __name__ == '__main__':
 
     sonarSourceMailingList = mailbox.mbox(mboxFilePath)
 
-    print "Got %d messages" % len(sonarSourceMailingList)
+    # print "Got %d messages" % len(sonarSourceMailingList)
 
-    rootMessages = [message for message
+    rootMessages = dict([(message['Message-Id'], message) for message
         in sonarSourceMailingList.values()
         if not message['References']
-        and not '@sonarsource.com' in message['From']]
+        and not '@sonarsource.com' in message['From']])
 
-    print "Got %d root messages not from SonarSource" % len(rootMessages)
+    # print "Got %d root messages not from SonarSource" % len(rootMessages)
 
-    rootMessageIds = [message['Message-ID'] for message
-        in rootMessages]
+    rootMessageIds = rootMessages.keys()
 
     firstResponses = [message for message
         in sonarSourceMailingList.values()
         if message['References'] in rootMessageIds]
 
-    print "Got %d first responses" % len(firstResponses)
+    # print "Got %d first responses" % len(firstResponses)
 
-    firstSonarSourceResponders = Counter(map(sanitize_address, [
-        message['From'] for message
-        in firstResponses
-        if '@sonarsource.com' in message['From']]))
+    respondersWithRootSubject = [
+        (
+            sanitize_address(message['From']),
+            rootMessages[message['References']]['Subject']
+        )
+        for message in firstResponses
+        if '@sonarsource.com' in message['From']]
 
-    print "First responders from SS: "
-    pprint.pprint(firstSonarSourceResponders)
+    with open('respondersWithRootSubject.csv', 'wb') as csvfile:
+        spamwriter = csv.writer(csvfile, delimiter=',',
+                            quotechar="'", quoting=csv.QUOTE_MINIMAL)
+        for address, subject in respondersWithRootSubject:
+            spamwriter.writerow([address, subject])
